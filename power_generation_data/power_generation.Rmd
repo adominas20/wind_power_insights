@@ -1,0 +1,101 @@
+---
+title: "WindPowerGeneration"
+author: "Aleksander Dominas"
+date: "05/01/2024"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+#Importing libraries
+
+```{r}
+library(ggplot2)
+library(gridExtra)
+library(stringr)
+```
+
+#Loading the data
+
+Setting working directory and loading the data
+
+```{r}
+setwd("C:/Users/aleks/OneDrive/Documents/flutter_projects/power_generation_data")
+```
+
+```{r}
+location1 <- read.csv("Location1.csv")
+location2 <- read.csv("Location2.csv")
+location3 <- read.csv("Location3.csv")
+location4 <- read.csv("Location4.csv")
+```
+
+# Exploring the data
+
+```{r}
+summary(location1)
+```
+
+```{r}
+head(location1)
+```
+All variable types look correctly categorised. 
+
+Checking for NAs by column:
+
+```{r}
+colSums(is.na(location1))
+```
+
+```{r}
+colSums(is.na(location2))
+```
+
+```{r}
+colSums(is.na(location3))
+```
+
+```{r}
+colSums(is.na(location4))
+```
+
+# Exploring the data
+
+```{r}
+# Generating a boxplot for the 'temperature' column using ggplot2
+temperature.boxplot <- ggplot(location1, aes(y = temperature_2m)) +
+  geom_boxplot(notch = TRUE) +
+  labs(title = 'Boxplot of temperature 2m above surface in location 1', y = 'Temperature (F)') +
+  theme(plot.title = element_text(size = 8)) +
+  coord_flip()
+
+# Generating a boxplot for the 'relative humidity' column using ggplot2
+humidity.boxplot <- ggplot(location1, aes(y = relativehumidity_2m)) +
+  geom_boxplot(notch = TRUE) +
+  labs(title = 'Boxplot of relative humidity 2m above surface in location 1', y = 'Relative Humidity (%)') + 
+  theme(plot.title = element_text(size = 8)) +
+  coord_flip()
+
+# Generating a boxplot for the 'dewpoint' column using ggplot2
+dewpoint.boxplot <- ggplot(location1, aes(y = dewpoint_2m)) +
+  geom_boxplot(notch = TRUE) +
+  labs(title = 'Boxplot of dew point 2m above surface in location 1', y = 'Dew Point (F)') + 
+  theme(plot.title = element_text(size = 8)) +
+  coord_flip()
+
+# Generating a boxplot for the 'wind speed (10m)' column using ggplot2
+windspeed10m.boxplot <- ggplot(location1, aes(y = windspeed_10m)) +
+  geom_boxplot(notch = TRUE) +
+  labs(title = 'Boxplot of wind speed 10m above surface in location 1', y = 'Wind Speed (m/s)') + 
+  theme(plot.title = element_text(size = 8)) +
+  coord_flip()
+
+# Displaying all boxplots in the same panel
+grid.arrange(temperature.boxplot, humidity.boxplot, dewpoint.boxplot, windspeed10m.boxplot)
+```
+
+
