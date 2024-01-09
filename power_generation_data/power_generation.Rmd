@@ -1,0 +1,574 @@
+---
+title: "WindPowerGeneration"
+author: "Aleksander Dominas"
+date: "05/01/2024"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Importing libraries
+
+```{r}
+library(ggplot2)
+library(grid)
+library(gridExtra)
+library(stringr)
+library(dplyr)
+library(corrplot)
+```
+
+# Loading the data
+
+Setting working directory and loading the data
+
+```{r}
+setwd("C:/Users/aleks/OneDrive/Documents/flutter_projects/power_generation_data")
+```
+
+```{r}
+location1 <- read.csv("Location1.csv")
+location2 <- read.csv("Location2.csv")
+location3 <- read.csv("Location3.csv")
+location4 <- read.csv("Location4.csv")
+```
+
+# Exploring the data
+
+```{r}
+summary(location1)
+```
+
+```{r}
+head(location1)
+```
+All variable types look correctly categorised. 
+
+Checking for NAs by column:
+
+```{r}
+colSums(is.na(location1))
+```
+
+```{r}
+colSums(is.na(location2))
+```
+
+```{r}
+colSums(is.na(location3))
+```
+
+```{r}
+colSums(is.na(location4))
+```
+
+# Cleaning/transforming the data
+
+As mentioned in the Readme of the Kaggle dataset, wind direction is given in degrees from 0-360. 0 and 360 indicate the same point on the circle, so it would be best to:
+
+1. Convert the degrees to radians
+2. Transform using sine or cosine
+
+This would convert the circular data into two-dimensional Cartesian coordinates, capturing the circular nature of the data, allowing for more accurate statistical modeling and analysis.
+
+```{r}
+# Convert degrees to radians
+wind_direction_10_loc1_radians <- location1$winddirection_10m * (pi / 180)
+wind_direction_100_loc1_radians <- location1$winddirection_100m * (pi / 180)
+
+wind_direction_10_loc2_radians <- location2$winddirection_10m * (pi / 180)
+wind_direction_100_loc2_radians <- location2$winddirection_100m * (pi / 180)
+
+wind_direction_10_loc3_radians <- location3$winddirection_10m * (pi / 180)
+wind_direction_100_loc3_radians <- location3$winddirection_100m * (pi / 180)
+
+wind_direction_10_loc4_radians <- location4$winddirection_10m * (pi / 180)
+wind_direction_100_loc4_radians <- location4$winddirection_100m * (pi / 180)
+
+# Sine transformations
+sin_wd_10_loc1 <- sin(wind_direction_10_loc1_radians)
+sin_wd_100_loc1 <- sin(wind_direction_100_loc1_radians)
+
+sin_wd_10_loc2 <- sin(wind_direction_10_loc2_radians)
+sin_wd_100_loc2 <- sin(wind_direction_100_loc2_radians)
+
+sin_wd_10_loc3 <- sin(wind_direction_10_loc3_radians)
+sin_wd_100_loc3 <- sin(wind_direction_100_loc3_radians)
+
+sin_wd_10_loc4 <- sin(wind_direction_10_loc4_radians)
+sin_wd_100_loc4 <- sin(wind_direction_100_loc4_radians)
+
+# Adding columns to dataframes
+location1$sin_wd_10 <- sin_wd_10_loc1
+location1$sin_wd_100 <- sin_wd_100_loc1
+
+location2$sin_wd_10 <- sin_wd_10_loc2
+location2$sin_wd_100 <- sin_wd_100_loc2
+
+location3$sin_wd_10 <- sin_wd_10_loc3
+location3$sin_wd_100 <- sin_wd_100_loc3
+
+location4$sin_wd_10 <- sin_wd_10_loc4
+location4$sin_wd_100 <- sin_wd_100_loc4
+```
+
+```{r}
+head(location1)
+head(location2)
+head(location3)
+head(location4)
+```
+
+
+# Exploring the data
+
+```{r}
+# Generating a boxplot for the 'temperature' column using ggplot2
+temperature.boxplot <- ggplot(location1, aes(y = temperature_2m)) +
+  geom_boxplot(notch = TRUE) +
+  labs(title = 'Boxplot of temperature 2m above surface', y = 'Temperature (F)') +
+  theme(plot.title = element_text(size = 8), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank()) +
+  coord_flip()
+
+# Generating a boxplot for the 'relative humidity' column using ggplot2
+humidity.boxplot <- ggplot(location1, aes(y = relativehumidity_2m)) +
+  geom_boxplot(notch = TRUE) +
+  labs(title = 'Boxplot of relative humidity 2m above surface', y = 'Relative Humidity (%)') + 
+  theme(plot.title = element_text(size = 8), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank()) +
+  coord_flip()
+
+# Generating a boxplot for the 'dewpoint' column using ggplot2
+dewpoint.boxplot <- ggplot(location1, aes(y = dewpoint_2m)) +
+  geom_boxplot(notch = TRUE) +
+  labs(title = 'Boxplot of dew point 2m above surface', y = 'Dew Point (F)') + 
+  theme(plot.title = element_text(size = 8), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank()) +
+  coord_flip()
+
+# Generating a boxplot for the 'wind gusts (100m)' column using ggplot2
+windgusts.boxplot <- ggplot(location1, aes(y = windgusts_10m)) +
+  geom_boxplot(notch = TRUE) +
+  labs(title = 'Boxplot of wind gusts 10m above surface', y = 'Wind Speed (m/s)') + 
+  theme(plot.title = element_text(size = 8), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank()) +
+  coord_flip()
+
+# Generating a boxplot for the 'wind speed (10m)' column using ggplot2
+windspeed10m.boxplot <- ggplot(location1, aes(y = windspeed_10m)) +
+  geom_boxplot(notch = TRUE) +
+  labs(title = 'Boxplot of wind speed 10m above surface', y = 'Wind Speed (m/s)') + 
+  theme(plot.title = element_text(size = 8), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank()) +
+  coord_flip()
+
+# Generating a boxplot for the 'wind speed (100m)' column using ggplot2
+windspeed100m.boxplot <- ggplot(location1, aes(y = windspeed_100m)) +
+  geom_boxplot(notch = TRUE) +
+  labs(title = 'Boxplot of wind speed 100m above surface', y = 'Wind Speed (m/s)') + 
+  theme(plot.title = element_text(size = 8), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank()) +
+  coord_flip()
+
+# Generating a boxplot for the 'wind direction (10m)' column using ggplot2
+winddirection10m.boxplot <- ggplot(location1, aes(y = sin_wd_10_loc1)) +
+  geom_boxplot(notch = TRUE) +
+  labs(title = 'Boxplot of wind direction 10m above surface', y = 'Sine of Wind Direction (radians)') + 
+  theme(plot.title = element_text(size = 8), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank()) +
+  coord_flip()
+
+# Generating a boxplot for the 'wind direction (100m)' column using ggplot2
+winddirection100m.boxplot <- ggplot(location1, aes(y = sin_wd_100_loc1)) +
+  geom_boxplot(notch = TRUE) +
+  labs(title = 'Boxplot of wind direction 100m above surface', y = 'Sine of Wind Direction (radians)') + 
+  theme(plot.title = element_text(size = 8), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank()) +
+  coord_flip()
+
+# Displaying all boxplots in the same panel
+grid.arrange(temperature.boxplot, humidity.boxplot, dewpoint.boxplot, windgusts.boxplot, windspeed10m.boxplot, windspeed100m.boxplot, winddirection10m.boxplot, winddirection100m.boxplot,
+               ncol = 2, 
+  top = textGrob("Location 1", gp = gpar(fontface = "bold", fontsize = 20)))
+```
+```{r}
+# Generating a boxplot for the 'temperature' column using ggplot2
+temperature.boxplot <- ggplot(location2, aes(y = temperature_2m)) +
+  geom_boxplot(notch = TRUE) +
+  labs(title = 'Boxplot of temperature 2m above surface', y = 'Temperature (F)') +
+  theme(plot.title = element_text(size = 8), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank()) +
+  coord_flip()
+
+# Generating a boxplot for the 'relative humidity' column using ggplot2
+humidity.boxplot <- ggplot(location2, aes(y = relativehumidity_2m)) +
+  geom_boxplot(notch = TRUE) +
+  labs(title = 'Boxplot of relative humidity 2m above surface', y = 'Relative Humidity (%)') + 
+  theme(plot.title = element_text(size = 8), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank()) +
+  coord_flip()
+
+# Generating a boxplot for the 'dewpoint' column using ggplot2
+dewpoint.boxplot <- ggplot(location2, aes(y = dewpoint_2m)) +
+  geom_boxplot(notch = TRUE) +
+  labs(title = 'Boxplot of dew point 2m above surface', y = 'Dew Point (F)') + 
+  theme(plot.title = element_text(size = 8), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank()) +
+  coord_flip()
+
+# Generating a boxplot for the 'wind gusts (100m)' column using ggplot2
+windgusts.boxplot <- ggplot(location2, aes(y = windgusts_10m)) +
+  geom_boxplot(notch = TRUE) +
+  labs(title = 'Boxplot of wind gusts 10m above surface', y = 'Wind Speed (m/s)') + 
+  theme(plot.title = element_text(size = 8), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank()) +
+  coord_flip()
+
+# Generating a boxplot for the 'wind speed (10m)' column using ggplot2
+windspeed10m.boxplot <- ggplot(location2, aes(y = windspeed_10m)) +
+  geom_boxplot(notch = TRUE) +
+  labs(title = 'Boxplot of wind speed 10m above surface', y = 'Wind Speed (m/s)') + 
+  theme(plot.title = element_text(size = 8), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank()) +
+  coord_flip()
+
+# Generating a boxplot for the 'wind speed (100m)' column using ggplot2
+windspeed100m.boxplot <- ggplot(location2, aes(y = windspeed_100m)) +
+  geom_boxplot(notch = TRUE) +
+  labs(title = 'Boxplot of wind speed 100m above surface', y = 'Wind Speed (m/s)') + 
+  theme(plot.title = element_text(size = 8), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank()) +
+  coord_flip()
+
+# Generating a boxplot for the 'wind direction (10m)' column using ggplot2
+winddirection10m.boxplot <- ggplot(location2, aes(y = sin_wd_10_loc2)) +
+  geom_boxplot(notch = TRUE) +
+  labs(title = 'Boxplot of wind direction 10m above surface', y = 'Sine of Wind Direction (radians)') + 
+  theme(plot.title = element_text(size = 8), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank()) +
+  coord_flip()
+
+# Generating a boxplot for the 'wind direction (100m)' column using ggplot2
+winddirection100m.boxplot <- ggplot(location2, aes(y = sin_wd_100_loc2)) +
+  geom_boxplot(notch = TRUE) +
+  labs(title = 'Boxplot of wind direction 100m above surface', y = 'Sine of Wind Direction (radians)') + 
+  theme(plot.title = element_text(size = 8), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank()) +
+  coord_flip()
+
+# Displaying all boxplots in the same panel
+grid.arrange(temperature.boxplot, humidity.boxplot, dewpoint.boxplot, windgusts.boxplot, windspeed10m.boxplot, windspeed100m.boxplot, winddirection10m.boxplot, winddirection100m.boxplot,
+               ncol = 2, 
+  top = textGrob("Location 2", gp = gpar(fontface = "bold", fontsize = 20)))
+```
+```{r}
+# Generating a boxplot for the 'temperature' column using ggplot2
+temperature.boxplot <- ggplot(location3, aes(y = temperature_2m)) +
+  geom_boxplot(notch = TRUE) +
+  labs(title = 'Boxplot of temperature 2m above surface', y = 'Temperature (F)') +
+  theme(plot.title = element_text(size = 8), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank()) +
+  coord_flip()
+
+# Generating a boxplot for the 'relative humidity' column using ggplot2
+humidity.boxplot <- ggplot(location3, aes(y = relativehumidity_2m)) +
+  geom_boxplot(notch = TRUE) +
+  labs(title = 'Boxplot of relative humidity 2m above surface', y = 'Relative Humidity (%)') + 
+  theme(plot.title = element_text(size = 8), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank()) +
+  coord_flip()
+
+# Generating a boxplot for the 'dewpoint' column using ggplot2
+dewpoint.boxplot <- ggplot(location3, aes(y = dewpoint_2m)) +
+  geom_boxplot(notch = TRUE) +
+  labs(title = 'Boxplot of dew point 2m above surface', y = 'Dew Point (F)') + 
+  theme(plot.title = element_text(size = 8), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank()) +
+  coord_flip()
+
+# Generating a boxplot for the 'wind gusts (100m)' column using ggplot2
+windgusts.boxplot <- ggplot(location3, aes(y = windgusts_10m)) +
+  geom_boxplot(notch = TRUE) +
+  labs(title = 'Boxplot of wind gusts 10m above surface', y = 'Wind Speed (m/s)') + 
+  theme(plot.title = element_text(size = 8), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank()) +
+  coord_flip()
+
+# Generating a boxplot for the 'wind speed (10m)' column using ggplot2
+windspeed10m.boxplot <- ggplot(location3, aes(y = windspeed_10m)) +
+  geom_boxplot(notch = TRUE) +
+  labs(title = 'Boxplot of wind speed 10m above surface', y = 'Wind Speed (m/s)') + 
+  theme(plot.title = element_text(size = 8), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank()) +
+  coord_flip()
+
+# Generating a boxplot for the 'wind speed (100m)' column using ggplot2
+windspeed100m.boxplot <- ggplot(location3, aes(y = windspeed_100m)) +
+  geom_boxplot(notch = TRUE) +
+  labs(title = 'Boxplot of wind speed 100m above surface', y = 'Wind Speed (m/s)') + 
+  theme(plot.title = element_text(size = 8), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank()) +
+  coord_flip()
+
+# Generating a boxplot for the 'wind direction (10m)' column using ggplot2
+winddirection10m.boxplot <- ggplot(location3, aes(y = sin_wd_10_loc3)) +
+  geom_boxplot(notch = TRUE) +
+  labs(title = 'Boxplot of wind direction 10m above surface', y = 'Sine of Wind Direction (radians)') + 
+  theme(plot.title = element_text(size = 8), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank()) +
+  coord_flip()
+
+# Generating a boxplot for the 'wind direction (100m)' column using ggplot2
+winddirection100m.boxplot <- ggplot(location3, aes(y = sin_wd_100_loc3)) +
+  geom_boxplot(notch = TRUE) +
+  labs(title = 'Boxplot of wind direction 100m above surface', y = 'Sine of Wind Direction (radians)') + 
+  theme(plot.title = element_text(size = 8), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank()) +
+  coord_flip()
+
+# Displaying all boxplots in the same panel
+grid.arrange(temperature.boxplot, humidity.boxplot, dewpoint.boxplot, windgusts.boxplot, windspeed10m.boxplot, windspeed100m.boxplot, winddirection10m.boxplot, winddirection100m.boxplot,
+               ncol = 2, 
+  top = textGrob("Location 3", gp = gpar(fontface = "bold", fontsize = 20)))
+```
+```{r}
+# Generating a boxplot for the 'temperature' column using ggplot2
+temperature.boxplot <- ggplot(location4, aes(y = temperature_2m)) +
+  geom_boxplot(notch = TRUE) +
+  labs(title = 'Boxplot of temperature 2m above surface', y = 'Temperature (F)') +
+  theme(plot.title = element_text(size = 8), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank()) +
+  coord_flip()
+
+# Generating a boxplot for the 'relative humidity' column using ggplot2
+humidity.boxplot <- ggplot(location4, aes(y = relativehumidity_2m)) +
+  geom_boxplot(notch = TRUE) +
+  labs(title = 'Boxplot of relative humidity 2m above surface', y = 'Relative Humidity (%)') + 
+  theme(plot.title = element_text(size = 8), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank()) +
+  coord_flip()
+
+# Generating a boxplot for the 'dewpoint' column using ggplot2
+dewpoint.boxplot <- ggplot(location4, aes(y = dewpoint_2m)) +
+  geom_boxplot(notch = TRUE) +
+  labs(title = 'Boxplot of dew point 2m above surface', y = 'Dew Point (F)') + 
+  theme(plot.title = element_text(size = 8), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank()) +
+  coord_flip()
+
+# Generating a boxplot for the 'wind gusts (100m)' column using ggplot2
+windgusts.boxplot <- ggplot(location4, aes(y = windgusts_10m)) +
+  geom_boxplot(notch = TRUE) +
+  labs(title = 'Boxplot of wind gusts 10m above surface', y = 'Wind Speed (m/s)') + 
+  theme(plot.title = element_text(size = 8), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank()) +
+  coord_flip()
+
+# Generating a boxplot for the 'wind speed (10m)' column using ggplot2
+windspeed10m.boxplot <- ggplot(location4, aes(y = windspeed_10m)) +
+  geom_boxplot(notch = TRUE) +
+  labs(title = 'Boxplot of wind speed 10m above surface', y = 'Wind Speed (m/s)') + 
+  theme(plot.title = element_text(size = 8), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank()) +
+  coord_flip()
+
+# Generating a boxplot for the 'wind speed (100m)' column using ggplot2
+windspeed100m.boxplot <- ggplot(location4, aes(y = windspeed_100m)) +
+  geom_boxplot(notch = TRUE) +
+  labs(title = 'Boxplot of wind speed 100m above surface', y = 'Wind Speed (m/s)') + 
+  theme(plot.title = element_text(size = 8), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank()) +
+  coord_flip()
+
+# Generating a boxplot for the 'wind direction (10m)' column using ggplot2
+winddirection10m.boxplot <- ggplot(location4, aes(y = sin_wd_10_loc4)) +
+  geom_boxplot(notch = TRUE) +
+  labs(title = 'Boxplot of wind direction 10m above surface', y = 'Sine of Wind Direction (radians)') + 
+  theme(plot.title = element_text(size = 8), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank()) +
+  coord_flip()
+
+# Generating a boxplot for the 'wind direction (100m)' column using ggplot2
+winddirection100m.boxplot <- ggplot(location4, aes(y = sin_wd_100_loc4)) +
+  geom_boxplot(notch = TRUE) +
+  labs(title = 'Boxplot of wind direction 100m above surface', y = 'Sine of Wind Direction (radians)') + 
+  theme(plot.title = element_text(size = 8), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank()) +
+  coord_flip()
+
+# Displaying all boxplots in the same panel
+grid.arrange(temperature.boxplot, humidity.boxplot, dewpoint.boxplot, windgusts.boxplot, windspeed10m.boxplot, windspeed100m.boxplot, winddirection10m.boxplot, winddirection100m.boxplot,
+               ncol = 2, 
+  top = textGrob("Location 4", gp = gpar(fontface = "bold", fontsize = 20)))
+```
+#Investigating Variables
+
+In order to make the future machine learning model more accurate, it is worth removing noisy variables from the dataset, i.e., variables that do not have a significant effect on the power generated. It would also be good to remove explanatory variables that are highly correlated to remove any issues associated with multi-collinearity. 
+
+To identify both scenarios, I will use a use a correlation plot:
+
+```{r}
+#Removing Date, and wind direction columns in degrees (keeping radians instead)
+location1_numeric <- select(location1, -c("Time", "winddirection_10m", "winddirection_100m"))
+correlation_1 <- cor(location1_numeric)
+corr_plot_1 <- corrplot(correlation_1, method = 'circle')
+
+location2_numeric <- select(location2, -c("Time", "winddirection_10m", "winddirection_100m"))
+correlation_2 <- cor(location2_numeric)
+corr_plot_2 <- corrplot(correlation_2, method = 'circle')
+
+location3_numeric <- select(location3, -c("Time", "winddirection_10m", "winddirection_100m"))
+correlation_3 <- cor(location3_numeric)
+corr_plot_3 <- corrplot(correlation_3, method = 'circle')
+
+location4_numeric <- select(location4, -c("Time", "winddirection_10m", "winddirection_100m"))
+correlation_4 <- cor(location4_numeric)
+corr_plot_4 <- corrplot(correlation_4, method = 'circle')
+
+corr_plot_1
+corr_plot_2
+corr_plot_3
+corr_plot_4
+```
+Though there are slight deviations between locations, the major correlations are the same across all. The variables presenting the most significant correlations (correlation coefficient > 0.5 || < -0.5) are:
+
+- wind speed (both 10m and 100m above the surface)
+- wind gusts
+
+Temperature and dew point have a much weaker correlation - in all locations the correlation coefficient is below -0.1 (similarly for wind direction, except it is greater than 0.1). Some would choose to exclude these variables, and it would be valid to do so, but the model would not be anything special as it would lean towards a simple linear regression if we decide to go with wind speed only. The correlation is visibly stronger than that of Power and humidity, so I have opted to keep everything except humidity for now. 
+
+The plot also shows us which explanatory variables are correlated:
+
+- temperature and dewpoint
+- wind speed at 10m and wind speed at 100m
+- wind direction at 10m and wind direction at 100m
+- wind gusts and wind speed at 10m
+- wind gusts and wind speed at 100m
+
+To avoid issues related to multi-collinearity it would be only select one variable from each pair (preferably the one that has a stronger correlation with Power).
+
+As correlations appear to be similar across all locations, I will only run the tests for Location 1. 
+
+Investigating temperature and dew point:
+
+```{r}
+cor.test(location1$temperature_2m, location1$dewpoint_2m)
+```
+The correlation is significant
+
+```{r}
+ggplot(location1, aes(x = temperature_2m, y = dewpoint_2m)) +
+  geom_point() +
+  labs(title = 'Scatter Graph of temperature and dew point at location 1', x = 'Temperature (F)', y = 'Dew Point (F)')
+```
+
+Investigating which has a greater correlation with Power using a linear model:
+
+```{r}
+temperature_power_lm <- lm(location1$Power~location1$temperature_2m)
+dewpoint_power_lm <- lm(location1$Power~location1$dewpoint_2m)
+
+summary(temperature_power_lm)
+summary(dewpoint_power_lm)
+```
+
+The differences are extremely subtle, so I've chosen to keep temperature and exclude dew point.
+
+Investigating wind speed 10m and wind speed 100m:
+
+```{r}
+cor.test(location1$windspeed_10m, location1$windspeed_100m)
+```
+
+```{r}
+ggplot(location1, aes(x = windspeed_10m, y = windspeed_100m)) +
+  geom_point() +
+  labs(title = 'Scatter Graph of wind speed at 10m and wind speed at 100m at location 1', x = 'Wind Speed 10m (m/s)', y = 'Wind Speed 100m (m/s)')
+```
+```{r}
+windspeed10_power_lm <- lm(location1$Power~location1$windspeed_10m)
+windspeed100_power_lm <- lm(location1$Power~location1$windspeed_100m)
+
+summary(windspeed10_power_lm)
+summary(windspeed100_power_lm)
+```
+
+Again, the differences are negligible, so I have decided to keep wind speed at 100m instead of wind speed at 10m as it can be assumed that this height is closer to the level of the spinning section of the turbine. 
+
+Investigating wind gusts and wind speed 100m:
+
+```{r}
+cor.test(location1$windspeed_100m, location1$windgusts_10m)
+```
+
+```{r}
+ggplot(location1, aes(x = windspeed_100m, y = windgusts_10m)) +
+  geom_point() +
+  labs(title = 'Scatter Graph of wind speed at 100m and wind gusts at 10m at location 1', x = 'Wind Speed 10m (m/s)', y = 'Wind Gusts 10m (m/s)')
+```
+```{r}
+wind_gusts_lm <- lm(location1$Power~location1$windgusts_10m)
+
+summary(wind_gusts_lm)
+summary(windspeed100_power_lm)
+```
+
+Wind speed looks to be more correlated with Power based on the more significant p-value at the Intercept. 
+Investigating wind direction 10m and wind direction 100m:
+
+```{r}
+cor.test(location1$sin_wd_10, location1$sin_wd_100)
+```
+
+```{r}
+ggplot(location1, aes(x = sin_wd_10 , y = sin_wd_100)) +
+  geom_point() +
+  labs(title = 'Scatter Graph of wind direction at 100m and wind direction at 10m at location 1', x = 'Sine of Wind Direction 10m (radians)', y = 'Sine of Wind Direction 100m (radians)')
+```
+```{r}
+wind_direction10_lm <- lm(location1$Power~location1$sin_wd_10)
+wind_direction100_lm <- lm(location1$Power~location1$sin_wd_100)
+
+summary(wind_direction10_lm)
+summary(wind_direction100_lm)
+```
+
+Both variables are similarly correlated with Power, so I will select wind direction at 100m and exclude wind direction at 10m. 
+
+Following this analysis, I have decided to select the following explanatory variables for modelling:
+
+- temperature
+- wind speed 100m
+- wind direction 100m
+
+# Preparing data for modelling
+
+Excluding variables not selected for modelling: 
+
+```{r}
+location1_final <- location1_numeric[c("temperature_2m", "windspeed_100m", "sin_wd_100", "Power")]
+location2_final <- location2_numeric[c("temperature_2m", "windspeed_100m", "sin_wd_100", "Power")]
+location3_final <- location3_numeric[c("temperature_2m", "windspeed_100m", "sin_wd_100", "Power")]
+location4_final <- location4_numeric[c("temperature_2m", "windspeed_100m", "sin_wd_100", "Power")]
+```
+
+Verifying correct vars are present:
+
+```{r}
+head(location1_final)
+head(location2_final)
+head(location3_final)
+head(location4_final)
+```
+Writing csv in current directory:
+
+```{r}
+write.csv(location1_final, "location1_final.csv", row.names = FALSE)
+write.csv(location2_final, "location2_final.csv", row.names = FALSE)
+write.csv(location3_final, "location3_final.csv", row.names = FALSE)
+write.csv(location4_final, "location4_final.csv", row.names = FALSE)
+```
+
