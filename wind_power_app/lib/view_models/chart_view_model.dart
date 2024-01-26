@@ -1,4 +1,5 @@
 import 'package:stacked/stacked.dart';
+import 'package:wind_power_app/core/models/power_data_model.dart';
 import 'package:wind_power_app/locator.dart';
 import 'package:wind_power_app/services/wind_data_service.dart';
 
@@ -15,8 +16,12 @@ class ChartViewModel extends BaseViewModel {
   List<String> get measurements => _measurements;
 
   Future<void> loadData() async {
-    List<List<dynamic>> data = await _dataService.loadCsvData("data/Location1.csv");
-    print(data);
+    List<PowerData> data = await _dataService.loadCsvData("data/Location1.csv");
+    print("Location of 400th record: ${data[400].location}");
+    print("temperature of 400th record: ${data[400].temperature}");
+    print("wind speed of 400th record: ${data[400].windSpeed}");
+    print("wind direction of 400th record: ${data[400].windDirection}");
+    print("power of 400th record: ${data[400].power}");
   }
 
   void testMethod() {
