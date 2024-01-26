@@ -1,0 +1,4 @@
+enum DropdownViewType {
+  location,
+  measurement,
+}
