@@ -10,6 +10,9 @@ class ChartView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<ChartViewModel>.reactive(
+      onViewModelReady: (model) async {
+        await model.loadData();
+      },
       builder: (context, model, child) => Scaffold(
         appBar: AppBar(
           title: const Text("Chart View"),

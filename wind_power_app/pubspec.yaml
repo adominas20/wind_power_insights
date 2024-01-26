@@ -18,6 +18,7 @@ dependencies:
   stacked: ^3.4.1+1
   stacked_services: ^1.3.0
   get_it: ^7.6.7
+  csv: ^5.1.1
 
 dev_dependencies:
   flutter_test:
@@ -30,3 +31,4 @@ flutter:
 
   assets:
     - assets/models/model.tflite
+    - assets/data/
