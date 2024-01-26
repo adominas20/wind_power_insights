@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:wind_power_app/view_models/chart_view_model.dart';
+import 'package:wind_power_app/widgets/chart.dart';
 import 'package:wind_power_app/widgets/dropdown_button.dart';
 
 class ChartView extends StatelessWidget {
@@ -13,11 +14,12 @@ class ChartView extends StatelessWidget {
         appBar: AppBar(
           title: const Text("Chart View"),
         ),
-        body: const Center(
+        body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              ChartDropdownButton(),
+              ChartDropdownButton(model: model),
+              Chart(model: model),
             ],
           ),
         ),

@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:wind_power_app/view_models/chart_view_model.dart';
 
 class ChartDropdownButton extends StatefulWidget {
-  const ChartDropdownButton({super.key});
+  const ChartDropdownButton({super.key, this.model});
+
+  final ChartViewModel? model;
 
   @override
   State<ChartDropdownButton> createState() => _ChartDropdownButtonState();
 }
 
 class _ChartDropdownButtonState extends State<ChartDropdownButton> {
-  String dropdownValue = 'Location 1';
-
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -29,18 +30,17 @@ class _ChartDropdownButtonState extends State<ChartDropdownButton> {
               focusedBorder: InputBorder.none,
               disabledBorder: InputBorder.none,
             ),
-            value: dropdownValue,
+            value: widget.model!.selectedLocation,
             icon: const Icon(Icons.keyboard_arrow_down),
             iconSize: 24,
             elevation: 16,
             style: const TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold),
             onChanged: (String? newValue) {
               setState(() {
-                dropdownValue = newValue!;
+                widget.model!.selectedLocation = newValue!;
               });
             },
-            items: <String>['Location 1', 'Location 2', 'Location 3', 'Location 4']
-                .map<DropdownMenuItem<String>>((String value) {
+            items: widget.model!.locations.map<DropdownMenuItem<String>>((String value) {
               return DropdownMenuItem<String>(
                 value: value,
                 child: Text(value),
